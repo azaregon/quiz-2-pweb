@@ -39,6 +39,18 @@ def serialize_project(project: dbmodel.PROJECTS):
         "technologies": tech_stack
     }
 
+@project_bp.route("/statuses", methods=['GET'])
+def get_statuses():
+    """Endpoint to get all available project statuses."""
+    statuses = dbmodel.getAllProjectStatuses()
+    return flask.jsonify({"success": True, "data": statuses}), 200
+
+@project_bp.route("/technologies", methods=['GET'])
+def get_techs():
+    """Endpoint to get all available project statuses."""
+    statuses = dbmodel.getAllProjectTechs()
+    return flask.jsonify({"success": True, "data": statuses}), 200
+
 
 @project_bp.route("/new", methods=['POST'])
 @auth.authCheck

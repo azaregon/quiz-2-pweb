@@ -314,6 +314,73 @@ def getAllProject(user_id:int):
 
     return projects
         
+def getAllProjectsWithDetails(user_id:int):
+    """
+    Fetches all projects for a user including their collaborators and technologies
+    using an efficient raw SQL query with JSON aggregation.
+    """
+    engine = sqla.create_engine(PG_CONN)
+
+    with engine.connect() as conn:
+        query = sqla.text(f"""
+            SELECT 
+                p.*,
+                COALESCE(
+                    (
+                        SELECT json_agg(json_build_object('user_id', u."ID", 'user_name', u.user_name, 'role', c.role))
+                        FROM "{COLLABORATORS.__tablename__}" c
+                        JOIN "{USER.__tablename__}" u ON c."USER_ID" = u."ID"
+                        WHERE c."PROJECTS_ID" = p."ID"
+                    ), '[]'::json
+                ) AS collaborators,
+                COALESCE(
+                    (
+                        SELECT json_agg(json_build_object('tech_id', pt.ID, 'tech_name', pt.tech_name, 'tech_color', pt.tech_color))
+                        FROM "{PROJECTTECHSTACK.__tablename__}" pts
+                        JOIN "{PROJECTTECHS.__tablename__}" pt ON pts."TECH_ID" = pt."ID"
+                        WHERE pts."PROJECTS_ID" = p."ID"
+                    ), '[]'::json
+                ) AS technologies
+            FROM "{PROJECTS.__tablename__}" p
+            WHERE p."USER_ID_PM" = :user_id
+            GROUP BY p."ID"
+            ORDER BY p."ID" DESC
+        """)
+        result = conn.execute(query, {"user_id": user_id}).mappings().all()
+        projects = [dict(row) for row in result]
+    return projects
+
+def getAllProjectStatuses():
+    """Fetches all project statuses from the database."""
+    engine = sqla.create_engine(PG_CONN)
+    with engine.connect() as conn:
+        query = sqla.text(f"""
+            SELECT *
+            FROM "{PROJECTSTATUS.__tablename__}"
+            ORDER BY "ID" ASC
+        """)
+        result = conn.execute(query).mappings().all()
+        
+        # Convert the list of RowMapping objects to a list of standard dictionaries.
+        statuses = [dict(row) for row in result]
+
+    return statuses
+
+def getAllProjectTechs():
+    """Fetches all project statuses from the database."""
+    engine = sqla.create_engine(PG_CONN)
+    with engine.connect() as conn:
+        query = sqla.text(f"""
+            SELECT *
+            FROM "{PROJECTTECHS.__tablename__}"
+            ORDER BY "ID" ASC
+        """)
+        result = conn.execute(query).mappings().all()
+        
+        # Convert the list of RowMapping objects to a list of standard dictionaries.
+        techs = [dict(row) for row in result]
+
+    return techs
 
 def getProject(id:int):
     engine = sqla.create_engine(PG_CONN)
