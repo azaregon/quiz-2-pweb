@@ -69,7 +69,7 @@ def logout():
         "url_redirect" : "/"
     })
     
-@auth_bp.route('/register')
+@auth_bp.route('/register', methods=['POST'])
 def register():
     # user_name = flask.request.form.get("user_name")
     # password = flask.request.form.get("password")
@@ -104,6 +104,15 @@ def register():
         user_name=user_name,
         passwd=password
     )
+
+    getted_user_2 = dbmodel.getUserDetails(user_name)
+
+    token = auth.jwtGenerate(getted_user_2.ID, getted_user_2.user_name)
+    return flask.jsonify({
+            "success" : True,
+            "message": "Login successful",
+            "token": token
+        }), 200
     
     
 

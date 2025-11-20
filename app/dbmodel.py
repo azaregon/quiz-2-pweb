@@ -491,6 +491,35 @@ def createNewProject(data_json:dict):
     return {"success":True}
 
 
+def deleteProject(project_id: int, user_id: int):
+    """
+    Deletes a project and its associated collaborators and tech stack,
+    but only if the user_id matches the project manager's ID.
+    """
+    engine = sqla.create_engine(PG_CONN)
+    with Session(engine) as session:
+        try:
+            # Find the project and verify ownership in one query
+            project = session.query(PROJECTS).filter(
+                PROJECTS.ID == project_id,
+                PROJECTS.USER_ID_PM == user_id
+            ).first()
+
+            if not project:
+                # If no project is found, it's either non-existent or the user is not the owner.
+                return {"success": False, "error_message": "Project not found or permission denied."}
+
+            # Delete associated records first
+            session.query(COLLABORATORS).filter(COLLABORATORS.PROJECTS_ID == project_id).delete(synchronize_session=False)
+            session.query(PROJECTTECHSTACK).filter(PROJECTTECHSTACK.PROJECTS_ID == project_id).delete(synchronize_session=False)
+
+            # Now delete the project itself
+            session.delete(project)
+            session.commit()
+            return {"success": True, "message": "Project deleted successfully."}
+        except Exception as e:
+            session.rollback()
+            raise e
 
 
 

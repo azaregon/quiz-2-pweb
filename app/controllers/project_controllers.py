@@ -87,3 +87,16 @@ def geAllProject(user_id):
     
     # The getProjectRaw function returns a dictionary-like object, so we can directly jsonify it.
     return flask.jsonify({"success": True, "data": all_project}), 200
+
+@project_bp.route("/delete/<int:project_id>", methods=['DELETE'])
+@auth.authCheck
+def deleteProject(project_id):
+    """Endpoint to delete a project. Only the project manager can delete it."""
+    user_id = flask.g.user_id  # Get the logged-in user's ID from the auth decorator
+    try:
+        result = dbmodel.deleteProject(project_id, user_id)
+        if not result.get("success"):
+            return flask.jsonify(result), 403 # Forbidden or Not Found
+        return flask.jsonify(result), 200
+    except Exception as e:
+        return flask.jsonify({"success": False, "error_message": str(e)}), 500
