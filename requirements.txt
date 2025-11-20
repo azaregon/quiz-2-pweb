@@ -2,4 +2,4 @@ flask_cors
 flask_bcrypt
 sqlalchemy
 psycopg2-binary
-jwt
+PyJWT
