@@ -43,18 +43,12 @@ def login():
     pw_check = getted_user.checkPassword(password)
 
     if pw_check == True: #if password is correct
-        # flask.session["user_name"] = getted_user.user_name
-        # flask.session["ID"] = getted_user.ID
-
-        
-        resp = flask.make_response(flask.jsonify({
+        token = auth.jwtGenerate(getted_user.ID, getted_user.user_name)
+        return flask.jsonify({
                 "success" : True,
-                "url_redirect" : "/main"
+                "message": "Login successful",
+                "token": token
             }), 200
-        )
-
-        resp.headers["Authorization"] = auth.jwtGenerate(getted_user.ID, getted_user.user_name)
-        return resp
     else:
         resp = flask.make_response(flask.jsonify(
                         {
@@ -119,4 +113,3 @@ def register():
     
 
     
-

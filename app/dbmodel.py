@@ -295,6 +295,26 @@ def createNewUser(user_name:str,passwd:str):
 
 # ------------------------------- Project Model ------------------------------ #
 
+def getAllProject(user_id:int):
+    engine = sqla.create_engine(PG_CONN)
+
+    with engine.connect() as conn:
+        # This raw query fetches all projects for a given user directly from the PROJECTS table.
+        query = sqla.text(f"""
+            SELECT *
+            FROM "{PROJECTS.__tablename__}"
+            WHERE "USER_ID_PM" = :user_id
+            ORDER BY "ID" DESC
+        """)
+
+        result = conn.execute(query, {"user_id": user_id}).mappings().all()
+        
+        # Convert the list of RowMapping objects to a list of standard dictionaries.
+        projects = [dict(row) for row in result]
+
+    return projects
+        
+
 def getProject(id:int):
     engine = sqla.create_engine(PG_CONN)
 
@@ -449,7 +469,8 @@ if __name__ == "__main__":
 
 
     # a = getProject(82)
-    b = getProjectRaw(82)
+    # b = getProjectRaw(82)
+    b = getAllProject(1)
     print(b)
 
 

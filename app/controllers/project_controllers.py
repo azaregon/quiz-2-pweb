@@ -65,3 +65,13 @@ def get_project(project_id):
     
     # The getProjectRaw function returns a dictionary-like object, so we can directly jsonify it.
     return flask.jsonify({"success": True, "data": dict(project)}), 200
+
+
+@project_bp.route("/all/<user_id>", methods=['GET'])
+def geAllProject(user_id):
+    all_project = dbmodel.getAllProject(user_id)
+    if not all_project:
+        return flask.jsonify({"success": False, "error_message": "Project not found"}), 200
+    
+    # The getProjectRaw function returns a dictionary-like object, so we can directly jsonify it.
+    return flask.jsonify({"success": True, "data": all_project}), 200
